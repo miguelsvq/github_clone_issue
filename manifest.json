@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Git issue clone",
+  "version": "1.0",
+  "description": "Clone issues definition",
+  "icons": {
+    "128": "images/icon-128.png"
+  },
+  "content_scripts": [
+    {
+       "matches": ["https://github.com/*"],
+       "js": ["content.js"],
+       "css": ["content.css"]
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "permissions": [
+    "storage","tabs"
+  ],
+  "host_permissions": [
+    "https://github.com/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [ "/images/*","/templates.json" ],
+      "matches": [ "https://github.com/*" ],
+      "use_dynamic_url": true
+    }
+  ]
+
+}

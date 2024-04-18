@@ -1,0 +1,27 @@
+<!DOCTYPE html> <html> <head> <title>Git Clone Extension Options</title> </head>
+<body>
+ <!-- Useless by now
+  <div>
+    <label for="token">GIT Token: </label><input type="text" name="token" id="token"><br/>
+    <small><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token">Fine grained, including issues:read.</a><br/>
+    </a href="https://docs.github.com/en/enterprise-server@3.12/rest/issues/issues?apiVersion=2022-11-28#get-an-issue">More information about valid tokens in REST API documentation</a></small><br/>
+    <small>If left blank will not overwrite a previously provided token.</small>
+  </div>
+-->
+  <div>
+    <label for="titlePrefix">Clones title prefix: </label><input type="text" name="titlePrefix" id="titlePrefix">
+  </div>
+  <div>
+    <input type="checkbox" id="buttonsInList" name="buttonsInList" /> <label for="buttonsInList">Add clone buttons in issues list page</label> 
+  </div>
+  <div>
+    <input type="checkbox" id="buttonInIssuePage" name="buttonInIssuePage" /> <label for="buttonInIssuePage">Add clone button in issue page</label> 
+  </div>
+  <div>
+    <input type="checkbox" id="newWithTemplate" name="newWithTemplate" /> <label for="newWithTemplate">Add "new from template" buttons</label> 
+  </div>
+  <div id="status"></div><br/>
+  <button id="save">Save</button>
+  <script src="options.js"></script>
+</body>
+</html>
