@@ -1,10 +1,9 @@
 # git_clone_issue
 
-This extension add "Clone" button on the issues. On click will open the new issue form populated with the original issue data.
-It can also provide "Clone" button on the issues list and generate new issues based on predefined templates (templates.json). I know github templates system, but for my use case I needed too mane templates for my client to be comfortable... And I guess I'm not the only one with that problem.
+This extension adds a "Clone" button to issues. That button will open the new issue form populated with the original issue data. This extension can also provide "Clone" buttons on the issues list and generate new issues based on predefined templates (templates.json). We know GitHub's issue templates system, but in our use case, there are too many periodic task templates for the client and other providers to be comfortable... Probably, we are not the only ones with that kind of problem.
 
-To use it on GitHub Entrerprise versions edit the manifest.json file and replace https://github.com with the base url of your repository.
+To use it on GitHub Enterprise versions, edit the manifest.json file and replace https://github.com with the base URL of your repository.
 
-Set options clicking on the extension icon and selecting options... quite simple.
+Set options by clicking on the extension icon and selecting options... quite simple. By default, the "Clone" button will only appear on the issue page (not in the list), "New from template" is disabled, and the cloned issue title will be prefixed with "CLONED ".
 
-Adapt it to your needs and fix what you don't like, it's really bad code, unproperly formatted and far from a "good browser extension", but it works and do what it have to do (most of the times :D).
+Make it yours, tweak what you don't like. Sure, the code is not top-notch, the formatting might be a bit wonky, but hey, it gets the job done (most of the time :D).
