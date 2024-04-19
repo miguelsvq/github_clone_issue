@@ -14,130 +14,130 @@ let patterns = [];
 
 const manifestData = chrome.runtime.getManifest();
 const url = new URL(manifestData.content_scripts[0].matches[0]);
-const pattern = new RegExp(`${url.origin.replaceAll('.', '\\.')}/.*/issues/[0-9]*`);
-const patternList = new RegExp(`${url.origin.replaceAll('.', '\\.')}/.*/issues$`);
+const issuePattern = new RegExp(`${url.origin.replaceAll('.', '\\.')}/.*/issues/[0-9]*`);
+const issueListPattern = new RegExp(`${url.origin.replaceAll('.', '\\.')}/.*/issues$`);
 
 chrome.storage.local.get('gitToken', ({ gitToken: storedGitToken }) => {
     gitToken = storedGitToken || '';
 });
 
 const init = () => {
-    if (buttonInIssuePage && pattern.test(window.location.href) && document.querySelector('.gh-header-actions')) {
+    if (buttonInIssuePage && issuePattern.test(window.location.href) && document.querySelector('.gh-header-actions')) {
         addButton();
     }
-    if (buttonsInList && patternList.test(window.location.href)) {
-        cloneInLinks();
+    if (buttonsInList && issueListPattern.test(window.location.href)) {
+        addCloneButtonToIssueLinks();
     }
-    if (newWithTemplate && patternList.test(window.location.href)) {
-        insertButtonNewWithTemplate();
+    if (newWithTemplate && issueListPattern.test(window.location.href)) {
+        addNewFromTemplateButton();
     }
 };
 
 const addButton = () => {
     if (!document.getElementById('ext_clone')) {
-        const bClone = document.createElement('button');
-        bClone.id = 'ext_clone';
-        bClone.className = 'Button Button--small Button--secondary flex-md-order-2';
-        bClone.textContent = 'Clone';
-        bClone.onclick = () => clone(false);
-        if (document.querySelector('.gh-header-actions')) {
-            document.querySelector('.gh-header-actions').appendChild(bClone);
+        const cloneButton = document.createElement('button');
+        cloneButton.id = 'ext_clone';
+        cloneButton.className = 'Button Button--small Button--secondary flex-md-order-2';
+        cloneButton.textContent = 'Clone';
+        cloneButton.onclick = () => cloneIssue(false);
+        const headerActions = document.querySelector('.gh-header-actions');
+        if (headerActions) {
+            headerActions.appendChild(cloneButton);
         }
     }
 };
 
-const insertButtonNewWithTemplate = () => {
+const addNewFromTemplateButton = () => {
     const url = new URL(window.location.href);
     const parts = url.pathname.split('/');
     if (parts.length < 3) return;
-    const new_issue_url = `/${parts[1]}/${parts[2]}/issues/new/choose`;
-    const create_url = `/${parts[1]}/${parts[2]}/issues/new?`;
-    const create_issue_links = document.querySelectorAll(`a[href="${new_issue_url}"]:not(.ext_processed)`);
-    const exists = document.querySelectorAll('.templatesList').length;
-    if (!exists && create_issue_links.length) {
+    const newIssueURL = `/${parts[1]}/${parts[2]}/issues/new/choose`;
+    const createURL = `/${parts[1]}/${parts[2]}/issues/new?`;
+    const newIssueLinks = document.querySelectorAll(`a[href="${newIssueURL}"]:not(.ext_processed)`);
+    const templateListExists = document.querySelectorAll('.templatesList').length;
+    if (!templateListExists && newIssueLinks.length) {
         fetch(chrome.runtime.getURL("templates.json"))
             .then(response => response.json())
-            .then(json => {
-                const templateLinks = document.createElement('div');
-                templateLinks.classList.add('templatesList');
-                const container = document.createElement('div');
-                container.classList.add('templatesLinks');
+            .then(templateData => {
+                const templatesList = document.createElement('div');
+                templatesList.classList.add('templatesList');
+                const templateLinksContainer = document.createElement('div');
+                templateLinksContainer.classList.add('templatesLinks');
                 const trigger = document.createElement('div');
                 trigger.textContent = "New from template";
                 trigger.classList.add('templatesTrigger');
                 trigger.onclick = (e) => e.target.classList.toggle('open');
-                templateLinks.append(trigger, container);
-                json.forEach(item => {
-                    const link = document.createElement('a');
-                    link.classList.add('newWithTemplate');
-                    link.href = urlFromTemplate(create_url, item);
-                    link.target = '_blank';
-                    link.textContent = item.title;
-                    container.appendChild(link);
+                templatesList.append(trigger, templateLinksContainer);
+                templateData.forEach(template => {
+                    const templateLink = document.createElement('a');
+                    templateLink.classList.add('newWithTemplate');
+                    templateLink.href = getTemplateURL(createURL, template);
+                    templateLink.target = '_blank';
+                    templateLink.textContent = template.title;
+                    templateLinksContainer.appendChild(templateLink);
                 });
-                create_issue_links.forEach(link => {
+                newIssueLinks.forEach(link => {
                     link.classList.add('ext_processed');
-                    link.parentNode.appendChild(templateLinks);
+                    link.parentNode.appendChild(templatesList);
                 });
             })
             .catch(console.error);
     }
 };
 
-const urlFromTemplate = (create_url, clone_json) => {
-    create_url += `title=${encodeURIComponent(clone_json.title)}`;
-    if (clone_json.body) create_url += `&body=${encodeURIComponent(clone_json.body)}`;
-    if (clone_json.milestone) create_url += `&milestone=${encodeURIComponent(clone_json.milestone)}`;
-    if (clone_json.labels && clone_json.labels.length) create_url += `&labels=${encodeURIComponent(clone_json.labels.join(','))}`;
-    if (clone_json.assignees && clone_json.assignees.length) create_url += `&assignees=${encodeURIComponent(clone_json.assignees.join(','))}`;
-    return create_url;
+const getTemplateURL = (createURL, template) => {
+    createURL += `title=${encodeURIComponent(template.title)}`;
+    if (template.body) createURL += `&body=${encodeURIComponent(template.body)}`;
+    if (template.milestone) createURL += `&milestone=${encodeURIComponent(template.milestone)}`;
+    if (template.labels && template.labels.length) createURL += `&labels=${encodeURIComponent(template.labels.join(','))}`;
+    if (template.assignees && template.assignees.length) createURL += `&assignees=${encodeURIComponent(template.assignees.join(','))}`;
+    return createURL;
 };
 
-const cloneInLinks = () => {
+const addCloneButtonToIssueLinks = () => {
     const url = new URL(window.location.href);
     if (url.pathname.match('/.+/.+/issues$') || url.pathname.match('/.+/.+/issues/$')) {
-        const issuelinks = document.querySelectorAll(`.js-issue-row a[href^="${url.pathname}"][id^="issue_"]:not(.ext_processed)`);
-        issuelinks.forEach(issuelink => {
-            issuelink.classList.add('ext_processed');
-            const bClone = document.createElement('div');
-            bClone.className = 'Button Button--secondary';
-            bClone.textContent = 'Clone';
-            bClone.dataset.extIssue = issuelink.href;
-            bClone.onclick = () => clone(bClone.getAttribute("data-ext-issue"));
-            issuelink.parentNode.after(bClone);
+        const issueLinks = document.querySelectorAll(`.js-issue-row a[href^="${url.pathname}"][id^="issue_"]:not(.ext_processed)`);
+        issueLinks.forEach(issueLink => {
+            issueLink.classList.add('ext_processed');
+            const cloneButton = document.createElement('div');
+            cloneButton.className = 'Button Button--secondary';
+            cloneButton.textContent = 'Clone';
+            cloneButton.dataset.extIssue = issueLink.href;
+            cloneButton.onclick = () => cloneIssue(cloneButton.getAttribute("data-ext-issue"));
+            issueLink.parentNode.after(cloneButton);
         });
     }
 };
 
-const clone = (link) => {
-    if (!link) link = window.location.href;
-    const url = new URL(link);
-    const issue_url = (url.origin !== 'https://github.com')
+const cloneIssue = (issueLink) => {
+    if (!issueLink) issueLink = window.location.href;
+    const url = new URL(issueLink);
+    const issueAPIURL = (url.origin !== 'https://github.com')
         ? `${url.origin}/api/v3/repos${url.pathname}`
         : `https://api.github.com/repos${url.pathname}`;
 
-    fetch(issue_url, {
+    fetch(issueAPIURL, {
         method: 'GET',
         headers: {
             'Accept': 'application/vnd.github+json',
-            //'Authorization': 'Bearer '+gitToken, //Don't seems to be needed in github if have read access
         },
     })
     .then(response => response.json())
-    .then(json => {
+    .then(issueData => {
         const parts = url.pathname.split('/');
         parts.pop();
         parts.pop();
-        const clone_json = {
-            title: titlePrefix + json.title,
-            body: json.body,
-            milestone: (json.milestone && json.milestone.number) ? json.milestone.number : undefined,
-            labels: (json.labels && json.labels.map(label => label.name)) || [],
-            assignees: (json.assignees && json.assignees.map(assignee => assignee.login)) || [],
+        const clonedIssue = {
+            title: titlePrefix + issueData.title,
+            body: issueData.body,
+            milestone: (issueData.milestone && issueData.milestone.number) ? issueData.milestone.number : undefined,
+            labels: (issueData.labels && issueData.labels.map(label => label.name)) || [],
+            assignees: (issueData.assignees && issueData.assignees.map(assignee => assignee.login)) || [],
         };
-        const create_url = url.origin + parts.join('/') + '/issues/new?';
-        const new_issue_url = urlFromTemplate(create_url, clone_json);
-        window.open(new_issue_url, '_blank');
+        const createURL = url.origin + parts.join('/') + '/issues/new?';
+        const newIssueURL = getTemplateURL(createURL, clonedIssue);
+        window.open(newIssueURL, '_blank');
     })
     .catch(console.error);
 };
