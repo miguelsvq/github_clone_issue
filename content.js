@@ -1,45 +1,47 @@
-let titlePrefix = 'CLONED';
-let buttonsInList = false;
-let buttonInIssuePage = true;
-let newWithTemplate = false;
+// Constants
+const TITLE_PREFIX = 'CLONED ';
 
-chrome.storage.local.get('extOptions', ({ extOptions }) => {
-    if (extOptions) {
-        ({ titlePrefix, buttonsInList, buttonInIssuePage, newWithTemplate } = extOptions);
-    }
-});
-
-let gitToken = false;
-let patterns = [];
-
-const manifestData = chrome.runtime.getManifest();
-const url = new URL(manifestData.content_scripts[0].matches[0]);
-const issuePattern = new RegExp(`${url.origin.replaceAll('.', '\\.')}/.*/issues/[0-9]*`);
-const issueListPattern = new RegExp(`${url.origin.replaceAll('.', '\\.')}/.*/issues$`);
-
-chrome.storage.local.get('gitToken', ({ gitToken: storedGitToken }) => {
-    gitToken = storedGitToken || '';
-});
-
-const init = () => {
-    if (buttonInIssuePage && issuePattern.test(window.location.href) && document.querySelector('.gh-header-actions')) {
-        addButton();
-    }
-    if (buttonsInList && issueListPattern.test(window.location.href)) {
-        addCloneButtonToIssueLinks();
-    }
-    if (newWithTemplate && issueListPattern.test(window.location.href)) {
-        addNewFromTemplateButton();
-    }
+// Initialize extension options
+let extOptions = {
+    titlePrefix: TITLE_PREFIX,
+    buttonsInList: false,
+    buttonInIssuePage: true,
+    newWithTemplate: false
 };
 
+// Initialize GitHub token
+let gitToken = '';
+
+// Initialize URL patterns
+let issuePattern;
+let issueListPattern;
+
+// Fetch extension options from storage
+chrome.storage.local.get(['extOptions', 'gitToken'], ({ extOptions: storedExtOptions, gitToken: storedGitToken }) => {
+    extOptions = storedExtOptions || extOptions;
+    gitToken = storedGitToken || gitToken;
+
+    // Set URL patterns
+    const manifestData = chrome.runtime.getManifest();
+    const url = new URL(manifestData.content_scripts[0].matches[0]);
+    issuePattern = new RegExp(`${url.origin.replaceAll('.', '\\.')}/.*/issues/[0-9]*`);
+    issueListPattern = new RegExp(`${url.origin.replaceAll('.', '\\.')}/.*/issues$`);
+
+    // Initialize extension
+    init();
+});
+
+// Initialize extension
+const init = () => {
+    addButton();
+    addCloneButtonToIssueLinks();
+    addNewFromTemplateButton();
+};
+
+// Add "Clone" button to issue page
 const addButton = () => {
-    if (!document.getElementById('ext_clone')) {
-        const cloneButton = document.createElement('button');
-        cloneButton.id = 'ext_clone';
-        cloneButton.className = 'Button Button--small Button--secondary flex-md-order-2';
-        cloneButton.textContent = 'Clone';
-        cloneButton.onclick = () => cloneIssue(false);
+    if (extOptions.buttonInIssuePage && !document.getElementById('ext_clone') && issuePattern.test(window.location.href) && document.querySelector('.gh-header-actions')) {
+        const cloneButton = createCloneButton();
         const headerActions = document.querySelector('.gh-header-actions');
         if (headerActions) {
             headerActions.appendChild(cloneButton);
@@ -47,69 +49,115 @@ const addButton = () => {
     }
 };
 
+// Create "Clone" button element
+const createCloneButton = () => {
+    const cloneButton = document.createElement('button');
+    cloneButton.id = 'ext_clone';
+    cloneButton.className = 'Button Button--small Button--secondary flex-md-order-2';
+    cloneButton.textContent = 'Clone';
+    cloneButton.onclick = () => cloneIssue(false);
+    return cloneButton;
+};
+
+// Add "New from template" button to issues list
 const addNewFromTemplateButton = () => {
-    const url = new URL(window.location.href);
-    const parts = url.pathname.split('/');
-    if (parts.length < 3) return;
-    const newIssueURL = `/${parts[1]}/${parts[2]}/issues/new/choose`;
-    const createURL = `/${parts[1]}/${parts[2]}/issues/new?`;
-    const newIssueLinks = document.querySelectorAll(`a[href="${newIssueURL}"]:not(.ext_processed)`);
-    const templateListExists = document.querySelectorAll('.templatesList').length;
-    if (!templateListExists && newIssueLinks.length) {
-        fetch(chrome.runtime.getURL("templates.json"))
-            .then(response => response.json())
-            .then(templateData => {
-                const templatesList = document.createElement('div');
-                templatesList.classList.add('templatesList');
-                const templateLinksContainer = document.createElement('div');
-                templateLinksContainer.classList.add('templatesLinks');
-                const trigger = document.createElement('div');
-                trigger.textContent = "New from template";
-                trigger.classList.add('templatesTrigger');
-                trigger.onclick = (e) => e.target.classList.toggle('open');
-                templatesList.append(trigger, templateLinksContainer);
-                templateData.forEach(template => {
-                    const templateLink = document.createElement('a');
-                    templateLink.classList.add('newWithTemplate');
-                    templateLink.href = getTemplateURL(createURL, template);
-                    templateLink.target = '_blank';
-                    templateLink.textContent = template.title;
-                    templateLinksContainer.appendChild(templateLink);
-                });
-                newIssueLinks.forEach(link => {
-                    link.classList.add('ext_processed');
-                    link.parentNode.appendChild(templatesList);
-                });
-            })
-            .catch(console.error);
+    if (extOptions.newWithTemplate && issueListPattern.test(window.location.href)) {
+        const newIssueLinks = document.querySelectorAll(`a[href^="${getNewIssueURL()}"]:not(.ext_processed)`);
+        if (!document.querySelectorAll('.templatesList').length && newIssueLinks.length) {
+            fetchTemplateData();
+        }
     }
 };
 
-const getTemplateURL = (createURL, template) => {
-    createURL += `title=${encodeURIComponent(template.title)}`;
-    if (template.body) createURL += `&body=${encodeURIComponent(template.body)}`;
-    if (template.milestone) createURL += `&milestone=${encodeURIComponent(template.milestone)}`;
-    if (template.labels && template.labels.length) createURL += `&labels=${encodeURIComponent(template.labels.join(','))}`;
-    if (template.assignees && template.assignees.length) createURL += `&assignees=${encodeURIComponent(template.assignees.join(','))}`;
-    return createURL;
+// Fetch template data and add "New from template" button
+const fetchTemplateData = () => {
+    fetch(chrome.runtime.getURL("templates.json"))
+        .then(response => response.json())
+        .then(templateData => {
+            const templatesList = createTemplatesList(templateData);
+            const newIssueLinks = document.querySelectorAll(`a[href^="${getNewIssueURL()}"]:not(.ext_processed)`);
+            newIssueLinks.forEach(link => {
+                link.classList.add('ext_processed');
+                link.parentNode.appendChild(templatesList);
+            });
+        })
+        .catch(console.error);
 };
 
+// Create templates list element
+const createTemplatesList = (templateData) => {
+    const templatesList = document.createElement('div');
+    templatesList.classList.add('templatesList');
+    const templateLinksContainer = document.createElement('div');
+    templateLinksContainer.classList.add('templatesLinks');
+    const trigger = createTemplateTrigger();
+    templatesList.append(trigger, templateLinksContainer);
+    templateData.forEach(template => {
+        const templateLink = createTemplateLink(template);
+        templateLinksContainer.appendChild(templateLink);
+    });
+    return templatesList;
+};
+
+// Create "New from template" trigger element
+const createTemplateTrigger = () => {
+    const trigger = document.createElement('div');
+    trigger.textContent = "New from template";
+    trigger.classList.add('templatesTrigger');
+    trigger.onclick = (e) => e.target.classList.toggle('open');
+    return trigger;
+};
+
+// Create template link element
+const createTemplateLink = (template) => {
+    const templateLink = document.createElement('a');
+    templateLink.classList.add('newWithTemplate');
+    templateLink.href = getTemplateURL(template);
+    templateLink.target = '_blank';
+    templateLink.textContent = template.title;
+    return templateLink;
+};
+
+// Add "Clone" button to each issue link in the list
 const addCloneButtonToIssueLinks = () => {
-    const url = new URL(window.location.href);
-    if (url.pathname.match('/.+/.+/issues$') || url.pathname.match('/.+/.+/issues/$')) {
-        const issueLinks = document.querySelectorAll(`.js-issue-row a[href^="${url.pathname}"][id^="issue_"]:not(.ext_processed)`);
+    if (extOptions.buttonsInList && issueListPattern.test(window.location.href)) {
+        const issueLinks = document.querySelectorAll(`.js-issue-row a[href^="${issueURLPattern}"][id^="issue_"]:not(.ext_processed)`);
         issueLinks.forEach(issueLink => {
             issueLink.classList.add('ext_processed');
-            const cloneButton = document.createElement('div');
-            cloneButton.className = 'Button Button--secondary';
-            cloneButton.textContent = 'Clone';
+            const cloneButton = createCloneButton();
             cloneButton.dataset.extIssue = issueLink.href;
-            cloneButton.onclick = () => cloneIssue(cloneButton.getAttribute("data-ext-issue"));
+            cloneButton.onclick = () => cloneIssue(cloneButton.dataset.extIssue);
             issueLink.parentNode.after(cloneButton);
         });
     }
 };
 
+// Get URL for creating a new issue
+const getNewIssueURL = () => {
+    const url = new URL(window.location.href);
+    const parts = url.pathname.split('/');
+    if (parts.length >= 3) {
+        return `/${parts[1]}/${parts[2]}/issues/new`;
+    }
+    return '';
+};
+
+// Base to build creation urls
+const createURL = getNewIssueURL()+'?';
+
+// Pattern to detect issues links
+const getIssueURLPattern = () => {
+    const url = new URL(window.location.href);
+    const parts = url.pathname.split('/');
+    if (parts.length >= 3) {
+        return `/${parts[1]}/${parts[2]}/issues/`;
+    }
+    return '';
+};
+// Pattern to detect issues links
+const issueURLPattern = getIssueURLPattern();
+
+// Clone issue based on provided link or current page URL
 const cloneIssue = (issueLink) => {
     if (!issueLink) issueLink = window.location.href;
     const url = new URL(issueLink);
@@ -125,26 +173,32 @@ const cloneIssue = (issueLink) => {
     })
     .then(response => response.json())
     .then(issueData => {
-        const parts = url.pathname.split('/');
-        parts.pop();
-        parts.pop();
         const clonedIssue = {
-            title: titlePrefix + issueData.title,
+            title: extOptions.titlePrefix + issueData.title,
             body: issueData.body,
             milestone: (issueData.milestone && issueData.milestone.number) ? issueData.milestone.number : undefined,
             labels: (issueData.labels && issueData.labels.map(label => label.name)) || [],
             assignees: (issueData.assignees && issueData.assignees.map(assignee => assignee.login)) || [],
         };
-        const createURL = url.origin + parts.join('/') + '/issues/new?';
-        const newIssueURL = getTemplateURL(createURL, clonedIssue);
+        const newIssueURL = getTemplateURL(clonedIssue);
         window.open(newIssueURL, '_blank');
     })
     .catch(console.error);
 };
 
-let timer;
-const config = { attributes: false, childList: true, subtree: true };
-const callback = (mutationList, observer) => {
+// Get template URL for creating a new issue
+const getTemplateURL = (template) => {
+    let url = createURL + `title=${encodeURIComponent(template.title)}`;
+    if (template.body) url += `&body=${encodeURIComponent(template.body)}`;
+    if (template.milestone) url += `&milestone=${encodeURIComponent(template.milestone)}`;
+    if (template.labels && template.labels.length) url += `&labels=${encodeURIComponent(template.labels.join(','))}`;
+    if (template.assignees && template.assignees.length) url += `&assignees=${encodeURIComponent(template.assignees.join(','))}`;
+    return url;
+};
+
+
+// Handle mutations in the DOM
+const handleDOMMutations = (mutationList, observer) => {
     let trigger = false;
     for (const mutation of mutationList) {
         if (mutation.type === "childList") {
@@ -154,10 +208,10 @@ const callback = (mutationList, observer) => {
     }
     if (trigger) {
         if (timer) clearTimeout(timer);
-        timer = setTimeout(init, 250); // Ensure .gh-header-actions is already there
+        timer = setTimeout(init, 100); // Ensure .gh-header-actions is already there
     }
 };
-const observer = new MutationObserver(callback);
-observer.observe(document, config);
-
-init();
+// Create observer to monitor DOM mutations
+let timer;
+const observer = new MutationObserver(handleDOMMutations);
+observer.observe(document, { attributes: false, childList: true, subtree: true });
