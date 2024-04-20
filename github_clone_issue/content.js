@@ -17,11 +17,14 @@ let currentRepo = '';
 chrome.storage.local.get(['extOptions', 'gitToken'], ({ extOptions: storedExtOptions, gitToken: storedGitToken }) => {
     extOptions = storedExtOptions || extOptions;
     gitToken = storedGitToken || gitToken;
-    console.log(extOptions);
+    extOptions.otherRepos=extOptions.otherRepos.filter(function(e){return e}); 
     const url = new URL(window.location.href);
     const parts = url.pathname.split('/');
     if(parts.length>2){
         currentRepo=parts[1]+'/'+parts[2];
+    }
+    if(!extOptions.otherRepos.includes(currentRepo) ){
+        extOptions.otherRepos.unshift(currentRepo);
     }
     // Initialize extension
     init();
@@ -81,6 +84,7 @@ const createCloneButton = (issueLinkHref) => {
     cloneButton.id = 'ext_clone';
     cloneButton.className = 'Button Button--small Button--secondary flex-md-order-2';
     cloneButton.textContent = 'Clone';
+    cloneButton.dataset.extIssue = issueLinkHref;
     cloneButton.onclick = () => cloneIssue(cloneButton.dataset.extIssue,currentRepo);
     return cloneButton;
 };
