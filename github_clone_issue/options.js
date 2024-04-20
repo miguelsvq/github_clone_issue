@@ -12,7 +12,9 @@ chrome.storage.local.get('extOptions', function(items) {
       document.getElementById('buttonsInList').checked = items.extOptions.buttonsInList;
       document.getElementById('buttonInIssuePage').checked = items.extOptions.buttonInIssuePage;
       document.getElementById('newWithTemplate').checked = items.extOptions.newWithTemplate;
-      
+      let otherRepos=items.extOptions.otherRepos;
+      if(otherRepos){otherRepos=otherRepos.join('\n');}
+      document.getElementById('otherRepos').value = otherRepos;
     }
   });
   
@@ -38,7 +40,7 @@ const saveOptions = () => {
   extOptions.buttonsInList=document.getElementById('buttonsInList').checked;
   extOptions.buttonInIssuePage=document.getElementById('buttonInIssuePage').checked;
   extOptions.newWithTemplate=document.getElementById('newWithTemplate').checked;
-
+  extOptions.otherRepos=document.getElementById('otherRepos').value.split('\n');
   chrome.storage.local.set(
     { extOptions: extOptions},
     () => {
