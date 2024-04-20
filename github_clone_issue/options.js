@@ -1,11 +1,10 @@
-//Useless by now
-//chrome.storage.local.get('gitToken', function(items) {
-//    if(items.gitToken){
-//      document.getElementById('token').setAttribute('placeholder','Token already stored.');
-//    }else{
-//      document.getElementById('token').setAttribute('placeholder','No token stored yet.');
-//    }
-//  });
+chrome.storage.local.get('gitToken', function(items) {
+    if(items.gitToken){
+      document.getElementById('token').setAttribute('placeholder','Token already stored.');
+    }else{
+      document.getElementById('token').setAttribute('placeholder','No token stored yet.');
+    }
+  });
 chrome.storage.local.get('extOptions', function(items) {
     if(items.extOptions){
       document.getElementById('titlePrefix').value=items.extOptions.titlePrefix;
@@ -19,22 +18,21 @@ chrome.storage.local.get('extOptions', function(items) {
   });
   
 const saveOptions = () => {
-//  Useless by now
-//  const token = document.getElementById('token').value;
-//  if(token){
-//    chrome.storage.local.set(
-//    { gitToken: token},
-//    () => {
-//      const status = document.getElementById('status');
-//      document.getElementById('token').setAttribute('placehotder','Token already stored.');
-//      document.getElementById('token').value="";
-//      status.textContent = 'Saved!';
-//      setTimeout(() => {
-//      status.textContent = '';
-//      }, 750);
-//    }
-//    );
-//  }
+  const token = document.getElementById('token').value;
+  if(token){
+    chrome.storage.local.set(
+    { gitToken: token},
+    () => {
+      const status = document.getElementById('status');
+      document.getElementById('token').setAttribute('placeholder','Token already stored.');
+      document.getElementById('token').value="";
+      status.textContent = 'Saved!';
+      setTimeout(() => {
+      status.textContent = '';
+      }, 750);
+    }
+    );
+  }
   var extOptions={};
   extOptions.titlePrefix=document.getElementById('titlePrefix').value;
   extOptions.buttonsInList=document.getElementById('buttonsInList').checked;

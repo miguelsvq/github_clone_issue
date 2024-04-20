@@ -10,25 +10,40 @@ let extOptions = {
     otherRepos: []
 };
 
-// Initialize GitHub token
+let validSite=false;
+const meta=document.querySelector('meta[name="route-pattern"]');
+if(meta && meta.getAttribute('content') && meta.getAttribute('content').startsWith('/:user_id/:repository/issues')){
+  validSite=true;
+}
+let timer;
+let observer;
 let gitToken = '';
 let currentRepo = '';
+
 // Fetch extension options from storage
 chrome.storage.local.get(['extOptions', 'gitToken'], ({ extOptions: storedExtOptions, gitToken: storedGitToken }) => {
     extOptions = storedExtOptions || extOptions;
     gitToken = storedGitToken || gitToken;
+    if(!validSite){
+        return;
+    }
     extOptions.otherRepos=extOptions.otherRepos.filter(function(e){return e}); 
     const url = new URL(window.location.href);
     const parts = url.pathname.split('/');
     if(parts.length>2){
-        currentRepo=parts[1]+'/'+parts[2];
+        currentRepo=url.origin+'/'+parts[1]+'/'+parts[2];
     }
     if(!extOptions.otherRepos.includes(currentRepo) ){
         extOptions.otherRepos.unshift(currentRepo);
     }
+    observer = new MutationObserver(handleDOMMutations);
+    observer.observe(document, { attributes: false, childList: true, subtree: true });
     // Initialize extension
     init();
 });
+
+//<meta name="route-pattern" content="/:user_id/:repository/issues(.:format)">
+//<meta name="route-pattern" content="/:user_id/:repository/issues/:id(.:format)">
 
 // Initialize extension
 const init = () => {
@@ -217,6 +232,16 @@ const getIssueURLPattern = () => {
 // Pattern to detect issues links
 const issueURLPattern = getIssueURLPattern();
 
+//Check targer repository is same than origin repository
+const sameRepo = (issueLink,repo) => {
+    const from = new URL(issueLink);
+    const to = new URL(repo);
+    console.log(from.pathname.split('/').slice(0,3).join('/'),to.pathname.split('/').slice(0,3).join('/'));
+    if(from.origin != to.origin) return false;
+    if(from.pathname.split('/').slice(0,3).join('/')!=to.pathname.split('/').slice(0,3).join('/')) return false;
+    return true;
+}
+
 // Clone issue based on provided link or current page URL
 const cloneIssue = (issueLink,repo) => {
     if (!issueLink) issueLink = window.location.href;
@@ -224,22 +249,28 @@ const cloneIssue = (issueLink,repo) => {
     const issueAPIURL = (url.origin !== 'https://github.com')
         ? `${url.origin}/api/v3/repos${url.pathname}`
         : `https://api.github.com/repos${url.pathname}`;
-
+    let headers = {
+        'Accept': 'application/vnd.github+json',
+    };
+    if(url.origin !== 'https://github.com' && gitToken){
+        headers['Authorization'] = 'Bearer '+gitToken;
+        headers['X-GitHub-Api-Version']='2022-11-28';
+    }
     fetch(issueAPIURL, {
         method: 'GET',
-        headers: {
-            'Accept': 'application/vnd.github+json',
-        },
+        headers: headers,
     })
     .then(response => response.json())
     .then(issueData => {
         const clonedIssue = {
             title: extOptions.titlePrefix + issueData.title,
             body: issueData.body,
-            milestone: (issueData.milestone && issueData.milestone.number) ? issueData.milestone.number : undefined,
             labels: (issueData.labels && issueData.labels.map(label => label.name)) || [],
             assignees: (issueData.assignees && issueData.assignees.map(assignee => assignee.login)) || [],
         };
+        if(sameRepo(issueLink,repo) && issueData.milestone && issueData.milestone.number){
+            clonedIssue['milestone'] = issueData.milestone.number;
+        }
         const newIssueURL = getTemplateURL(clonedIssue,repo);
         window.open(newIssueURL, '_blank');
     })
@@ -248,7 +279,7 @@ const cloneIssue = (issueLink,repo) => {
 
 // Get template URL for creating a new issue
 const getTemplateURL = (template,repo) => {
-    let url = '/'+repo+'/issues/new?' + `title=${encodeURIComponent(template.title)}`;
+    let url = repo+'/issues/new?' + `title=${encodeURIComponent(template.title)}`;
     if (template.body) url += `&body=${encodeURIComponent(template.body)}`;
     if (template.milestone) url += `&milestone=${encodeURIComponent(template.milestone)}`;
     if (template.labels && template.labels.length) url += `&labels=${encodeURIComponent(template.labels.join(','))}`;
@@ -271,7 +302,4 @@ const handleDOMMutations = (mutationList, observer) => {
     }
 };
 
-// Create observer to monitor DOM mutations
-let timer;
-const observer = new MutationObserver(handleDOMMutations);
-observer.observe(document, { attributes: false, childList: true, subtree: true });
+
