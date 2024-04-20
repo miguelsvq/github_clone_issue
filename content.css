@@ -1,6 +1,6 @@
-.templatesList{margin-left:0.25rem;}
-.templatesTrigger {cursor:pointer;font-weight:500;border:1px solid rgba(31, 35, 40, 0.15);border-radius:6px;background-color:rgb(246, 248, 250);padding:0.25rem}
-.templatesLinks{
+.templatesList,.buttonsList{margin-left:0.25rem;}
+.templatesTrigger,.cloneToTrigger {cursor:pointer;font-weight:500;border:1px solid rgba(31, 35, 40, 0.15);border-radius:6px;background-color:rgb(246, 248, 250);padding:0.25rem}
+.templatesLinks,.buttonsContainer{
     border-radius:6px;
 	position:absolute;
 	background-color:rgb(246, 248, 250);
@@ -9,12 +9,16 @@
 	text-align:left;
 	z-index:100;
 }
-.newWithTemplate{
+.newWithTemplate, .cloneButton{
 	display:block;
 	padding:0.25rem;
 	text-decoration:none;
 	color: rgb(31, 35, 40);
 	font-weight:400;
+	cursor:pointer;
 }
 .templatesTrigger ~ .templatesLinks{display:none;}
 .templatesTrigger.open ~ .templatesLinks{display:block;}
+
+.cloneToTrigger ~ .buttonsContainer{display:none;}
+.cloneToTrigger.open ~ .buttonsContainer{display:block;}
