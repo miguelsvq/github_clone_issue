@@ -12,21 +12,10 @@ let extOptions = {
 // Initialize GitHub token
 let gitToken = '';
 
-// Initialize URL patterns
-let issuePattern;
-let issueListPattern;
-
 // Fetch extension options from storage
 chrome.storage.local.get(['extOptions', 'gitToken'], ({ extOptions: storedExtOptions, gitToken: storedGitToken }) => {
     extOptions = storedExtOptions || extOptions;
     gitToken = storedGitToken || gitToken;
-
-    // Set URL patterns
-    const manifestData = chrome.runtime.getManifest();
-    const url = new URL(manifestData.content_scripts[0].matches[0]);
-    issuePattern = new RegExp(`${url.origin.replaceAll('.', '\\.')}/.*/issues/[0-9]*`);
-    issueListPattern = new RegExp(`${url.origin.replaceAll('.', '\\.')}/.*/issues$`);
-
     // Initialize extension
     init();
 });
@@ -38,9 +27,25 @@ const init = () => {
     addNewFromTemplateButton();
 };
 
+// check issues list page or issue
+const pageType = () =>{
+    const url = new URL(window.location.href);
+    const parts = url.pathname.split('/');
+    if(parts.length<4){
+        return false;
+    }
+    if(parts[3]!='issues'){
+        return false;
+    }
+    if(parts.length>4 && parts[4].match(/^\d+$/)){
+        return 'issue';
+    }
+    return 'list';
+};
+
 // Add "Clone" button to issue page
 const addButton = () => {
-    if (extOptions.buttonInIssuePage && !document.getElementById('ext_clone') && issuePattern.test(window.location.href) && document.querySelector('.gh-header-actions')) {
+    if (extOptions.buttonInIssuePage && !document.getElementById('ext_clone') && pageType()=='issue' && document.querySelector('.gh-header-actions')) {
         const cloneButton = createCloneButton();
         const headerActions = document.querySelector('.gh-header-actions');
         if (headerActions) {
@@ -61,7 +66,7 @@ const createCloneButton = () => {
 
 // Add "New from template" button to issues list
 const addNewFromTemplateButton = () => {
-    if (extOptions.newWithTemplate && issueListPattern.test(window.location.href)) {
+    if (extOptions.newWithTemplate && pageType()=='list') {
         const newIssueLinks = document.querySelectorAll(`a[href^="${getNewIssueURL()}"]:not(.ext_processed)`);
         if (!document.querySelectorAll('.templatesList').length && newIssueLinks.length) {
             fetchTemplateData();
@@ -120,7 +125,7 @@ const createTemplateLink = (template) => {
 
 // Add "Clone" button to each issue link in the list
 const addCloneButtonToIssueLinks = () => {
-    if (extOptions.buttonsInList && issueListPattern.test(window.location.href)) {
+    if (extOptions.buttonsInList && pageType()=='list') {
         const issueLinks = document.querySelectorAll(`.js-issue-row a[href^="${issueURLPattern}"][id^="issue_"]:not(.ext_processed)`);
         issueLinks.forEach(issueLink => {
             issueLink.classList.add('ext_processed');
@@ -196,7 +201,6 @@ const getTemplateURL = (template) => {
     return url;
 };
 
-
 // Handle mutations in the DOM
 const handleDOMMutations = (mutationList, observer) => {
     let trigger = false;
@@ -208,9 +212,10 @@ const handleDOMMutations = (mutationList, observer) => {
     }
     if (trigger) {
         if (timer) clearTimeout(timer);
-        timer = setTimeout(init, 100); // Ensure .gh-header-actions is already there
+        timer = setTimeout(init, 50);
     }
 };
+
 // Create observer to monitor DOM mutations
 let timer;
 const observer = new MutationObserver(handleDOMMutations);
