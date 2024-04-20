@@ -17,13 +17,16 @@ let currentRepo = '';
 chrome.storage.local.get(['extOptions', 'gitToken'], ({ extOptions: storedExtOptions, gitToken: storedGitToken }) => {
     extOptions = storedExtOptions || extOptions;
     gitToken = storedGitToken || gitToken;
-    console.log(extOptions);
-    const url = new URL(window.location.href);
+    extOptions.otherRepos=extOptions.otherRepos.filter(function(e){return e}); 
+	const url = new URL(window.location.href);
     const parts = url.pathname.split('/');
     if(parts.length>2){
         currentRepo=parts[1]+'/'+parts[2];
     }
-    // Initialize extension
+	if(!extOptions.otherRepos.includes(currentRepo) ){
+		extOptions.otherRepos.unshift(currentRepo);
+	}
+	// Initialize extension
     init();
 });
 
@@ -81,6 +84,7 @@ const createCloneButton = (issueLinkHref) => {
     cloneButton.id = 'ext_clone';
     cloneButton.className = 'Button Button--small Button--secondary flex-md-order-2';
     cloneButton.textContent = 'Clone';
+    cloneButton.dataset.extIssue = issueLinkHref;
     cloneButton.onclick = () => cloneIssue(cloneButton.dataset.extIssue,currentRepo);
     return cloneButton;
 };
@@ -215,7 +219,7 @@ const issueURLPattern = getIssueURLPattern();
 
 // Clone issue based on provided link or current page URL
 const cloneIssue = (issueLink,repo) => {
-    if (!issueLink) issueLink = window.location.href;
+	if (!issueLink) issueLink = window.location.href;
     const url = new URL(issueLink);
     const issueAPIURL = (url.origin !== 'https://github.com')
         ? `${url.origin}/api/v3/repos${url.pathname}`
