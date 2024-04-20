@@ -9,3 +9,5 @@ Set options by clicking on the extension icon and selecting options... quite sim
 Make it yours, tweak what you don't like. Sure, the code is not top-notch, the formatting might be a bit wonky, but hey, it gets the job done (most of the time :D).
 
 If you want the extension packed you can download it from https://github.com/miguelsvq/github_clone_issue_extension
+
+Current code include "Clone to another repository" feature. No yet available in the packet extension.
