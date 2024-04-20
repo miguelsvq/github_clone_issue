@@ -10,4 +10,4 @@ Make it yours, tweak what you don't like. Sure, the code is not top-notch, the f
 
 If you want the extension packed you can download it from https://github.com/miguelsvq/github_clone_issue_extension
 
-Current develop branch include "Clone to another repository" feature. No yet available in the packet extension.
+Current code include "Clone to another repository" feature. No yet available in the packet extension.
