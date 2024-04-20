@@ -18,15 +18,15 @@ chrome.storage.local.get(['extOptions', 'gitToken'], ({ extOptions: storedExtOpt
     extOptions = storedExtOptions || extOptions;
     gitToken = storedGitToken || gitToken;
     extOptions.otherRepos=extOptions.otherRepos.filter(function(e){return e}); 
-	const url = new URL(window.location.href);
+    const url = new URL(window.location.href);
     const parts = url.pathname.split('/');
     if(parts.length>2){
         currentRepo=parts[1]+'/'+parts[2];
     }
-	if(!extOptions.otherRepos.includes(currentRepo) ){
-		extOptions.otherRepos.unshift(currentRepo);
-	}
-	// Initialize extension
+    if(!extOptions.otherRepos.includes(currentRepo) ){
+        extOptions.otherRepos.unshift(currentRepo);
+    }
+    // Initialize extension
     init();
 });
 
@@ -219,7 +219,7 @@ const issueURLPattern = getIssueURLPattern();
 
 // Clone issue based on provided link or current page URL
 const cloneIssue = (issueLink,repo) => {
-	if (!issueLink) issueLink = window.location.href;
+    if (!issueLink) issueLink = window.location.href;
     const url = new URL(issueLink);
     const issueAPIURL = (url.origin !== 'https://github.com')
         ? `${url.origin}/api/v3/repos${url.pathname}`
