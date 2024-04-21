@@ -22,3 +22,5 @@
 
 .cloneToTrigger ~ .buttonsContainer{display:none;}
 .cloneToTrigger.open ~ .buttonsContainer{display:block;}
+
+.Box-row .ext_button, .Box-row .buttonsList{margin-top:10px}

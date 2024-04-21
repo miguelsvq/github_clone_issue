@@ -1,13 +1,12 @@
 <!DOCTYPE html> <html> <head> <title>Git Clone Extension Options</title> </head>
 <body>
- <!-- Useless by now
   <div>
     <label for="token">GIT Token: </label><input type="text" name="token" id="token"><br/>
     <small><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token">Fine grained, including issues:read.</a><br/>
-    </a href="https://docs.github.com/en/enterprise-server@3.12/rest/issues/issues?apiVersion=2022-11-28#get-an-issue">More information about valid tokens in REST API documentation</a></small><br/>
-    <small>If left blank will not overwrite a previously provided token.</small>
+    </a href="https://docs.github.com/en/enterprise-server@3.12/rest/issues/issues?apiVersion=2022-11-28#get-an-issue">More information about valid tokens in REST API documentation</a><br/>
+    You don't need to provide a token if you are only using http://github/ and not a propietary enterprise version.
+    If left blank will not overwrite a previously provided token.</small>
   </div>
--->
   <div>
     <label for="titlePrefix">Clones title prefix: </label><input type="text" name="titlePrefix" id="titlePrefix">
   </div>
@@ -23,7 +22,7 @@
   <div>
     <label for="otherRepos">Clone to other repo:</label><br/>
     <textarea cols="60" rows="6" id="otherRepos" name="otherRepos" /></textarea><br/>
-    <small>One repository per line.<br/>Just the path as {owner}/{repo}.<br/>E.g.: miguelsvq/github_clone_issue </small>
+    <small>One repository per line, full url.<br/>E.g.: https://github.com/miguelsvq/github_clone_issue </small>
   </div>
   <div id="status"></div><br/>
   <button id="save">Save</button>
