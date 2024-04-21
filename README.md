@@ -18,4 +18,4 @@ By default, the "Clone" button will only appear on the issue page (not in the li
 
 To be able to clone to other repositories you will have to add them in the configuration. Use the full url.
 
-Depending on your own repositories configuration (out of https://github.com) you may need to provide a token (fine grained, including issues:read). For more information about valid tokens check </a href="https://docs.github.com/en/enterprise-server@3.12/rest/issues/issues?apiVersion=2022-11-28#get-an-issue">the REST API documentation</a>.
+Depending on your own repositories configuration (out of https://github.com) you may need to provide a token (fine grained, including issues:read). For more information about valid tokens check [GitHub REST API documentation](https://docs.github.com/en/enterprise-server@3.12/rest/issues/issues?apiVersion=2022-11-28#get-an-issue)
