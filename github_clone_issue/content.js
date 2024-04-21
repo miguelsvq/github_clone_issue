@@ -12,14 +12,14 @@ let extOptions = {
 
 let validSite=false;
 const meta=document.querySelector('meta[name="route-pattern"]');
-if(meta && meta.getAttribute('content') && meta.getAttribute('content').startsWith('/:user_id/:repository/issues')){
+console.log(meta.getAttribute('content'));
+if(meta && meta.getAttribute('content') && meta.getAttribute('content').includes('/issues')){
   validSite=true;
 }
 let timer;
 let observer;
 let gitToken = '';
 let currentRepo = '';
-
 // Fetch extension options from storage
 chrome.storage.local.get(['extOptions', 'gitToken'], ({ extOptions: storedExtOptions, gitToken: storedGitToken }) => {
     extOptions = storedExtOptions || extOptions;
@@ -41,9 +41,6 @@ chrome.storage.local.get(['extOptions', 'gitToken'], ({ extOptions: storedExtOpt
     // Initialize extension
     init();
 });
-
-//<meta name="route-pattern" content="/:user_id/:repository/issues(.:format)">
-//<meta name="route-pattern" content="/:user_id/:repository/issues/:id(.:format)">
 
 // Initialize extension
 const init = () => {
@@ -89,15 +86,16 @@ const addButton = () => {
 
 // Create "Clone" button element
 const createCloneButton = (issueLinkHref) => {
+console.log('clonebutton');
     if(!issueLinkHref){
         issueLinkHref=window.location.href;
     }
     if(extOptions.otherRepos.length > 1){
         return createCloneToButtons(issueLinkHref);
     }
-    const cloneButton = document.createElement('button');
+    const cloneButton = document.createElement('div');
     cloneButton.id = 'ext_clone';
-    cloneButton.className = 'Button Button--small Button--secondary flex-md-order-2';
+    cloneButton.className = 'Button Button--small Button--secondary ext_button';
     cloneButton.textContent = 'Clone';
     cloneButton.dataset.extIssue = issueLinkHref;
     cloneButton.onclick = () => cloneIssue(cloneButton.dataset.extIssue,currentRepo);
@@ -118,7 +116,7 @@ const createCloneToButtons = (issueLinkHref) => {
     buttonsList.append(trigger, buttonsListContainer);
     const cloneButton = document.createElement('div');
     cloneButton.className = 'cloneButton';
-    cloneButton.textContent = 'This repo';
+    cloneButton.textContent = 'This repository';
     cloneButton.dataset.extIssue = issueLinkHref;
     cloneButton.onclick = () => cloneIssue(cloneButton.dataset.extIssue,currentRepo);
     buttonsListContainer.appendChild(cloneButton);
