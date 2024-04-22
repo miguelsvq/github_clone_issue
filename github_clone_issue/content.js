@@ -154,17 +154,6 @@ const fetchTemplateData = () => {
             });
     }
   });
-    /*fetch(chrome.runtime.getURL("templates.json"))
-        .then(response => response.json())
-        .then(templateData => {
-            const templatesList = createTemplatesList(templateData);
-            const newIssueLinks = document.querySelectorAll(`a[href^="${getNewIssueURL()}"]:not(.ext_processed)`);
-            newIssueLinks.forEach(link => {
-                link.classList.add('ext_processed');
-                link.parentNode.appendChild(templatesList);
-            });
-        })
-        .catch(console.error);*/
 };
 
 // Create templates list element
