@@ -16,6 +16,13 @@ chrome.storage.local.get('extOptions', function(items) {
       document.getElementById('otherRepos').value = otherRepos;
     }
   });
+let extTemplates={};
+chrome.storage.local.get('extTemplates', function(items) {
+    if(items.extTemplates){
+      extTemplates=items.extTemplates;
+      populateTemplatesList();
+    }
+  });
   
 const saveOptions = () => {
   const token = document.getElementById('token').value;
@@ -46,8 +53,69 @@ const saveOptions = () => {
       status.textContent = 'Saved!';
       setTimeout(() => {
       status.textContent = '';
-      }, 750);
+      }, 1500);
     }
-    );
+  );
 };
 document.getElementById('save').addEventListener('click', saveOptions);
+
+var fileChooser = document.createElement("input");
+fileChooser.type = 'file';
+fileChooser.addEventListener('change', function (evt) {
+  var f = evt.target.files[0];
+  if(f) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var str = e.target.result;
+      template=JSON.parse(str);
+      const status = document.getElementById('status');
+      if(!template.id){
+        status.textContent = 'Error! Id is required.';
+         setTimeout(() => {
+         status.textContent = '';
+        }, 1500);
+      }else{
+        addTemplate(template);
+      }
+    }
+    reader.readAsText(f);
+  }
+});
+document.getElementById('loadTemplate').append(fileChooser);
+
+const addTemplate = (jsonTemplate) => {
+  const action = extTemplates[jsonTemplate.id] ? 'Changed!' : 'Added!';
+  extTemplates[jsonTemplate.id]=jsonTemplate;
+  storeTemplates(action);
+}
+
+const populateTemplatesList = () => {
+  const list = document.getElementById('templatesList');
+  while (list.firstChild) {
+    list.removeChild(list.lastChild);
+  }
+  for (const id in extTemplates) {
+    const title = extTemplates[id]['title'] ? extTemplates[id]['title'] : '-Untitled-';
+    const li = document.createElement("li");
+    li.textContent = '('+id+') '+ title;
+    list.append(li);
+  }
+}
+
+const deleteTemplate = (id) => {
+
+}
+
+const storeTemplates = (action) => {
+  chrome.storage.local.set(
+    { extTemplates: extTemplates},
+    () => {
+      const status = document.getElementById('status');
+      status.textContent = action;
+         setTimeout(() => {
+         status.textContent = '';
+      }, 1500);
+      populateTemplatesList()
+    }
+  );
+}

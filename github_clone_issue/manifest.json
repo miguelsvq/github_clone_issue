@@ -28,6 +28,11 @@
       "resources": [ "/templates.json" ],
       "matches": [ "https://*/*" ]
     }
-  ]
-
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "GitHubIssueClone@miguel.svq",
+      "strict_min_version": "109.0"
+    }
+  }
 }

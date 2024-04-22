@@ -17,12 +17,20 @@
     <input type="checkbox" id="buttonInIssuePage" name="buttonInIssuePage" /> <label for="buttonInIssuePage">Add clone button in issue page</label> 
   </div>
   <div>
-    <input type="checkbox" id="newWithTemplate" name="newWithTemplate" /> <label for="newWithTemplate">Add "new from template" buttons</label> 
-  </div>
-  <div>
     <label for="otherRepos">Clone to other repo:</label><br/>
     <textarea cols="60" rows="6" id="otherRepos" name="otherRepos" /></textarea><br/>
     <small>One repository per line, full url.<br/>E.g.: https://github.com/miguelsvq/github_clone_issue </small>
+  </div>
+  <div>
+    <input type="checkbox" id="newWithTemplate" name="newWithTemplate" /> <label for="newWithTemplate">Add "new from template" buttons</label> 
+  </div>
+  <div>
+    Current templates:<br/>
+    <ul id="templatesList">
+    </ul>
+  </div>
+  <div>
+    Add template:<div id="loadTemplate"></div><small><a href="templates_help.html">Templates help</a></small>
   </div>
   <div id="status"></div><br/>
   <button id="save">Save</button>
