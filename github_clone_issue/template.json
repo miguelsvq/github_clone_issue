@@ -1,8 +1,0 @@
-{
-	"id": "New bug found",
-	"title": "New bug found",
-	"body": "The following request is because a BUG.\r\n### Request\r\nOn the use case...",
-	"labels": ["bug","pendingClient"],
-	"assignees": ["mpereram-external","miguelsvq"],
-	"milestone": 2
-}
