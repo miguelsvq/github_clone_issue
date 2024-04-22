@@ -18,16 +18,7 @@
     "open_in_tab": true
   },
   "permissions": [
-    "storage","tabs"
-  ],
-  "host_permissions": [
-    "https://*/*"
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [ "/templates.json" ],
-      "matches": [ "https://*/*" ]
-    }
+    "storage"
   ],
   "browser_specific_settings": {
     "gecko": {
