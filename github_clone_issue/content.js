@@ -309,7 +309,7 @@ const handleDOMMutations = (mutationList, observer) => {
     }
     if (trigger) {
         if (timer) clearTimeout(timer);
-        timer = setTimeout(init, 50);
+        timer = setTimeout(init, 250);
     }
 };
 
