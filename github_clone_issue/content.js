@@ -145,13 +145,24 @@ const addNewFromTemplateButton = () => {
 // Fetch template data and add "New from template" button
 const fetchTemplateData = () => {
   chrome.storage.local.get('extTemplates', function(items) {
-    if(items.extTemplates){
-      const templatesList = createTemplatesList(items.extTemplates);
-            const newIssueLinks = document.querySelectorAll(`a[href^="${getNewIssueURL()}"]:not(.ext_processed)`);
-            newIssueLinks.forEach(link => {
-                link.classList.add('ext_processed');
-                link.parentNode.appendChild(templatesList);
-            });
+    if(!Object.keys(items.extTemplates).length){
+        //example
+        items.extTemplates={};
+        items.extTemplates['id_0'];
+        items.extTemplates['id_0']={};
+        items.extTemplates['id_0']['label']='Example template';
+        items.extTemplates['id_0']['title']='Title from example template';
+        items.extTemplates['id_0']['body']='###Description\n\nGo to options page (from menu extension) to create, edit and delete templates.';
+        items.extTemplates['id_0']['assignees']=['miguelsvq','mpereram'];
+        items.extTemplates['id_0']['labels']=['bug','wontfix'];
+    }
+    if(Object.keys(items.extTemplates).length){
+        const templatesList = createTemplatesList(items.extTemplates);
+        const newIssueLinks = document.querySelectorAll(`a[href^="${getNewIssueURL()}"]:not(.ext_processed)`);
+        newIssueLinks.forEach(link => {
+            link.classList.add('ext_processed');
+            link.parentNode.appendChild(templatesList);
+        });
     }
   });
 };
@@ -182,12 +193,11 @@ const createTemplateTrigger = () => {
 
 // Create template link element
 const createTemplateLink = (template) => {
-    '-Untitled-';
     const templateLink = document.createElement('a');
     templateLink.classList.add('newWithTemplate');
     templateLink.href = getTemplateURL(template,currentRepo);
     templateLink.target = '_blank';
-    templateLink.textContent = template.id;
+    templateLink.textContent = template.label;
     return templateLink;
 };
 
@@ -258,9 +268,10 @@ const cloneIssue = (issueLink,repo) => {
     })
     .then(response => response.json())
     .then(issueData => {
-        const clonedIssue = {
-            title: extOptions.titlePrefix + issueData.title,
-            body: issueData.body,
+			console.log(issueData);
+        let clonedIssue = {
+            title: replaceTokens(extOptions.titlePrefix + issueData.title + extOptions.titleSuffix,issueData),
+            body: replaceTokens(extOptions.descriptionPrefix + issueData.body + extOptions.descriptionSuffix,issueData),
             labels: (issueData.labels && issueData.labels.map(label => label.name)) || [],
             assignees: (issueData.assignees && issueData.assignees.map(assignee => assignee.login)) || [],
         };
@@ -273,6 +284,9 @@ const cloneIssue = (issueLink,repo) => {
     .catch(console.error);
 };
 
+const replaceTokens = (str,issueData) => {
+	return str.replace(/{#}/g, issueData.number).replace(/{L}/g, issueData.html_url).replace(/{T}/g, issueData.title);
+}
 // Get template URL for creating a new issue
 const getTemplateURL = (template,repo) => {
     const parts=[];

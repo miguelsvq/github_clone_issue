@@ -1,39 +1,99 @@
-<!DOCTYPE html> <html> <head> <title>Git Clone Extension Options</title> </head>
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="options.css">
+<title>Git Clone Extension Options</title>
+</head>
 <body>
+<h1>Options</h1>
+<details open>
+  <summary>Clone buttons</summary>
+  <div>
+    <div>
+      <input type="checkbox" id="buttonsInList" name="buttonsInList" /> <label for="buttonsInList">Add clone buttons in issues list page</label> 
+    </div>
+    <div>
+      <input type="checkbox" id="buttonInIssuePage" name="buttonInIssuePage" /> <label for="buttonInIssuePage">Add clone button in issue page</label> 
+    </div>
+    <div id="basic">
+	  <div><strong>Clon modifiers:</strong></div>
+	  <fieldset><legend>Title</legend>
+      <div><label for="titlePrefix">Prefix: </label><input type="text" name="titlePrefix" id="titlePrefix"></div>
+      <div><label for="titleSuffix">Suffix: </label><input type="text" name="titleSuffix" id="titleSuffix"></div>
+	  </fieldset>
+      <fieldset><legend>Description</legend>
+	  <div><label for="descriptionPrefix">Prefix: </label><textarea rows="4" name="descriptionPrefix" id="descriptionPrefix"></textarea></div>
+      <div><label for="descriptionSuffix">Suffix: </label><textarea rows="4" name="descriptionSuffix" id="descriptionSuffix"></textarea></div>
+	  </fieldset>
+	  <small>Available tokens:<br/>
+	  <code>{#}</code> original issue number.<br/>
+	  <code>{L}</code> Link to original issue.<br/>
+      <code>{T}</code> Original issue title.<br/>
+      </small>
+    </div>
+  </div>
+</details>
+<details >
+  <summary>Autentication and repositories (Clone to)</summary>
   <div>
     <label for="token">GIT Token: </label><input type="text" name="token" id="token"><br/>
-    <small><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token">Fine grained, including issues:read.</a><br/>
-    </a href="https://docs.github.com/en/enterprise-server@3.12/rest/issues/issues?apiVersion=2022-11-28#get-an-issue">More information about valid tokens in REST API documentation</a><br/>
-    You don't need to provide a token if you are only using http://github/ and not a propietary enterprise version.
-    If left blank will not overwrite a previously provided token.</small>
-  </div>
-  <div>
-    <label for="titlePrefix">Clones title prefix: </label><input type="text" name="titlePrefix" id="titlePrefix">
-  </div>
-  <div>
-    <input type="checkbox" id="buttonsInList" name="buttonsInList" /> <label for="buttonsInList">Add clone buttons in issues list page</label> 
-  </div>
-  <div>
-    <input type="checkbox" id="buttonInIssuePage" name="buttonInIssuePage" /> <label for="buttonInIssuePage">Add clone button in issue page</label> 
+    <small><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token">Recommended: fine grained token just including issues:read.</a><br/>
+    <a href="https://docs.github.com/en/enterprise-server@3.12/rest/issues/issues?apiVersion=2022-11-28#get-an-issue">More information about valid tokens in REST API documentation</a><br/>
+    You don't need to provide a token if you are only using http://github/.<br/>
+    Depending on your repository configuration (Enterprise version) you may need it or not.<br/>
+    If left blank will not overwrite a previously stored token.<br/>
+    Use a minus sign (-) on this field to delete the token.</small>
   </div>
   <div>
     <label for="otherRepos">Clone to other repo:</label><br/>
     <textarea cols="60" rows="6" id="otherRepos" name="otherRepos" /></textarea><br/>
     <small>One repository per line, full url.<br/>E.g.: https://github.com/miguelsvq/github_clone_issue </small>
   </div>
+</details>
+<details >
+  <summary>New from template</summary>
   <div>
-    <input type="checkbox" id="newWithTemplate" name="newWithTemplate" /> <label for="newWithTemplate">Add "new from template" buttons</label> 
+    <div>
+      <input type="checkbox" id="newWithTemplate" name="newWithTemplate" /> <label for="newWithTemplate">Add "new from template" buttons</label> 
+    </div>
+    <div>
+      <strong>Currently defined templates:</strong><br/>
+      <ul id="templatesList">
+      </ul>
+	  <small id="new">Click on the template label to edit or delete.</small>
+    </div>
+  <div class="wrapper">
+    <div id="templateForm">
+      <strong>Template:</strong>
+      <input type="text" name="id" id="id">
+      <div><label for="label">Label: </label><input required type="text" name="label" id="label" /></br><small>Name shown in the "New from template" list.</small></div>
+      <div><label for="title">Title: </label><input type="text" name="title" id="title" /></div>
+      <div><label for="body">Description:</label><textarea rows="6" id="body" name="body" /></textarea></div>
+      <div><label for="assignees">Assignees: </label><input type="text" name="assignees" id="assignees"></br><small>Comma delimited list.</small></div>
+      <div><label for="labels">Labels: </label><input type="text" name="labels" id="labels"></br><small>Comma delimited list.</small></div>
+      <button id="store">Store template</button>
+	  <button id="clear">Clear form</button>
+	  <button id="delete">Delete template</button>
+    </div>
+    <div class="tokens">
+      <h3>Available tokens:</h3>
+	  <ul>
+	   <li>Week:
+		  <ul>
+		  <li><code>{w}</code> : Current week number</li>
+		  <li><code>{W}</code> : Next week number</li>
+		  <li><code>{date:thisweek}</code> : </li>
+		  <li><code>{nextweek}</code> : </li>
+		  <li><code>{thismonth}</code> : </li>
+		  <li><code>{nextmonth}</code> : </li>
+		  </ul>
+		</li>
+	  </ul>
+    </div>
   </div>
-  <div>
-    Current templates:<br/>
-    <ul id="templatesList">
-    </ul>
-  </div>
-  <div>
-    Add template:<div id="loadTemplate"></div><small><a href="templates_help.html">Templates help</a></small>
-  </div>
-  <div id="status"></div><br/>
-  <button id="save">Save</button>
-  <script src="options.js"></script>
+</details>
+<div id="status"></div><br/>
+<button id="save">Save</button>
+<script src="options.js"></script>
 </body>
 </html>

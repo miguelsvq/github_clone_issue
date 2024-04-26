@@ -1,0 +1,27 @@
+body{margin:1rem;}
+h1 + details{border-top:1px solid gray;}
+details summary {cursor:pointer;}
+details {border-bottom:1px solid gray;padding:1rem;overflow:hidden}
+div{margin:0.5rem 0;}
+#templateForm label {
+    min-width: 4rem;
+    display: inline-block;
+    text-align: right;
+    padding-right: 0.25rem;
+}
+input{margin-right: 0.25rem;}
+textarea{vertical-align: text-top;    margin-right: 0.25rem;}
+#templatesList li span{cursor:pointer}
+.wrapper{overflow:hidden;}
+.tokens{float:left;margin-left:2rem}
+#templateForm {float:left;}
+#templateForm small{padding-left:4.25rem}
+#basic input[type="text"],#basic textarea,#templateForm input[type="text"],#templateForm textarea{width:24rem}
+#basic small{float:left;clear:both;}
+button{margin-right:1rem;}
+#delete{display:none;}
+#delete.visible{display:inline-block}
+.error{outline: 3px solid red;}
+#id{display:none;}
+code,summary,label,legend {font-weight:500}
+fieldset{float:left;clear:both;overflow:hidden;border-width: 1px;margin-left:0}
