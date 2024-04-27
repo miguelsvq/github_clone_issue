@@ -12,7 +12,6 @@ let extOptions = {
 
 let validSite=false;
 const meta=document.querySelector('meta[name="route-pattern"]');
-//console.log(meta.getAttribute('content'));
 if(meta && meta.getAttribute('content') && meta.getAttribute('content').includes('/issues')){
   validSite=true;
 }
@@ -268,7 +267,6 @@ const cloneIssue = (issueLink,repo) => {
     })
     .then(response => response.json())
     .then(issueData => {
-			console.log(issueData);
         let clonedIssue = {
             title: replaceTokens(extOptions.titlePrefix + issueData.title + extOptions.titleSuffix,issueData),
             body: replaceTokens(extOptions.descriptionPrefix + issueData.body + extOptions.descriptionSuffix,issueData),
