@@ -18,16 +18,12 @@
     "open_in_tab": true
   },
   "permissions": [
-    "storage","tabs"
+    "storage"
   ],
-  "host_permissions": [
-    "https://*/*"
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [ "/templates.json" ],
-      "matches": [ "https://*/*" ]
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "GitHubIssueClone@miguel.svq",
+      "strict_min_version": "109.0"
     }
-  ]
-
+  }
 }

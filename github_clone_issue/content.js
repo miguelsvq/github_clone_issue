@@ -12,7 +12,6 @@ let extOptions = {
 
 let validSite=false;
 const meta=document.querySelector('meta[name="route-pattern"]');
-console.log(meta.getAttribute('content'));
 if(meta && meta.getAttribute('content') && meta.getAttribute('content').includes('/issues')){
   validSite=true;
 }
@@ -86,7 +85,6 @@ const addButton = () => {
 
 // Create "Clone" button element
 const createCloneButton = (issueLinkHref) => {
-console.log('clonebutton');
     if(!issueLinkHref){
         issueLinkHref=window.location.href;
     }
@@ -145,31 +143,41 @@ const addNewFromTemplateButton = () => {
 
 // Fetch template data and add "New from template" button
 const fetchTemplateData = () => {
-    fetch(chrome.runtime.getURL("templates.json"))
-        .then(response => response.json())
-        .then(templateData => {
-            const templatesList = createTemplatesList(templateData);
-            const newIssueLinks = document.querySelectorAll(`a[href^="${getNewIssueURL()}"]:not(.ext_processed)`);
-            newIssueLinks.forEach(link => {
-                link.classList.add('ext_processed');
-                link.parentNode.appendChild(templatesList);
-            });
-        })
-        .catch(console.error);
+  chrome.storage.local.get('extTemplates', function(items) {
+    if(!Object.keys(items.extTemplates).length){
+        //example
+        items.extTemplates={};
+        items.extTemplates['id_0'];
+        items.extTemplates['id_0']={};
+        items.extTemplates['id_0']['label']='Example template';
+        items.extTemplates['id_0']['title']='Title from example template';
+        items.extTemplates['id_0']['body']='###Description\n\nGo to options page (from menu extension) to create, edit and delete templates.';
+        items.extTemplates['id_0']['assignees']=['miguelsvq','mpereram'];
+        items.extTemplates['id_0']['labels']=['bug','wontfix'];
+    }
+    if(Object.keys(items.extTemplates).length){
+        const templatesList = createTemplatesList(items.extTemplates);
+        const newIssueLinks = document.querySelectorAll(`a[href^="${getNewIssueURL()}"]:not(.ext_processed)`);
+        newIssueLinks.forEach(link => {
+            link.classList.add('ext_processed');
+            link.parentNode.appendChild(templatesList);
+        });
+    }
+  });
 };
 
 // Create templates list element
-const createTemplatesList = (templateData) => {
+const createTemplatesList = (extTemplates) => {
     const templatesList = document.createElement('div');
     templatesList.classList.add('templatesList');
     const templateLinksContainer = document.createElement('div');
     templateLinksContainer.classList.add('templatesLinks');
     const trigger = createTemplateTrigger();
     templatesList.append(trigger, templateLinksContainer);
-    templateData.forEach(template => {
-        const templateLink = createTemplateLink(template);
-        templateLinksContainer.appendChild(templateLink);
-    });
+    for (const id in extTemplates) {
+      const templateLink = createTemplateLink(extTemplates[id]);
+      templateLinksContainer.appendChild(templateLink);
+    }
     return templatesList;
 };
 
@@ -188,7 +196,7 @@ const createTemplateLink = (template) => {
     templateLink.classList.add('newWithTemplate');
     templateLink.href = getTemplateURL(template,currentRepo);
     templateLink.target = '_blank';
-    templateLink.textContent = template.title;
+    templateLink.textContent = template.label;
     return templateLink;
 };
 
@@ -234,7 +242,6 @@ const issueURLPattern = getIssueURLPattern();
 const sameRepo = (issueLink,repo) => {
     const from = new URL(issueLink);
     const to = new URL(repo);
-    console.log(from.pathname.split('/').slice(0,3).join('/'),to.pathname.split('/').slice(0,3).join('/'));
     if(from.origin != to.origin) return false;
     if(from.pathname.split('/').slice(0,3).join('/')!=to.pathname.split('/').slice(0,3).join('/')) return false;
     return true;
@@ -260,9 +267,9 @@ const cloneIssue = (issueLink,repo) => {
     })
     .then(response => response.json())
     .then(issueData => {
-        const clonedIssue = {
-            title: extOptions.titlePrefix + issueData.title,
-            body: issueData.body,
+        let clonedIssue = {
+            title: replaceTokens(extOptions.titlePrefix + issueData.title + extOptions.titleSuffix,issueData),
+            body: replaceTokens(extOptions.descriptionPrefix + issueData.body + extOptions.descriptionSuffix,issueData),
             labels: (issueData.labels && issueData.labels.map(label => label.name)) || [],
             assignees: (issueData.assignees && issueData.assignees.map(assignee => assignee.login)) || [],
         };
@@ -275,14 +282,18 @@ const cloneIssue = (issueLink,repo) => {
     .catch(console.error);
 };
 
+const replaceTokens = (str,issueData) => {
+	return str.replace(/{#}/g, issueData.number).replace(/{L}/g, issueData.html_url).replace(/{T}/g, issueData.title);
+}
 // Get template URL for creating a new issue
 const getTemplateURL = (template,repo) => {
-    let url = repo+'/issues/new?' + `title=${encodeURIComponent(template.title)}`;
-    if (template.body) url += `&body=${encodeURIComponent(template.body)}`;
-    if (template.milestone) url += `&milestone=${encodeURIComponent(template.milestone)}`;
-    if (template.labels && template.labels.length) url += `&labels=${encodeURIComponent(template.labels.join(','))}`;
-    if (template.assignees && template.assignees.length) url += `&assignees=${encodeURIComponent(template.assignees.join(','))}`;
-    return url;
+    const parts=[];
+    if (template.title) parts.push( `title=${encodeURIComponent(template.title)}`);
+    if (template.body) parts.push(`body=${encodeURIComponent(template.body)}`);
+    if (template.milestone) parts.push(`milestone=${encodeURIComponent(template.milestone)}`);
+    if (template.labels && template.labels.length) parts.push( `labels=${encodeURIComponent(template.labels.join(','))}`);
+    if (template.assignees && template.assignees.length) parts.push(`assignees=${encodeURIComponent(template.assignees.join(','))}`);
+    return repo+'/issues/new?'+parts.join('&');
 };
 
 // Handle mutations in the DOM
@@ -296,7 +307,7 @@ const handleDOMMutations = (mutationList, observer) => {
     }
     if (trigger) {
         if (timer) clearTimeout(timer);
-        timer = setTimeout(init, 50);
+        timer = setTimeout(init, 250);
     }
 };
 
