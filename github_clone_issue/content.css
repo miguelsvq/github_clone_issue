@@ -17,6 +17,7 @@
 	font-weight:400;
 	cursor:pointer;
 }
+
 .templatesTrigger ~ .templatesLinks{display:none;}
 .templatesTrigger.open ~ .templatesLinks{display:block;}
 

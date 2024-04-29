@@ -17,11 +17,21 @@ textarea{vertical-align: text-top;    margin-right: 0.25rem;}
 #templateForm {float:left;}
 #templateForm small{padding-left:4.25rem}
 #basic input[type="text"],#basic textarea,#templateForm input[type="text"],#templateForm textarea{width:24rem}
-#basic small{float:left;clear:both;}
+#basic > div > small{float:left;clear:both;}
 button{margin-right:1rem;}
 #delete{display:none;}
 #delete.visible{display:inline-block}
 .error{outline: 3px solid red;}
 #id{display:none;}
+#basic input#assignTo{width:23.25rem}
 code,summary,label,legend {font-weight:500}
 fieldset{float:left;clear:both;overflow:hidden;border-width: 1px;margin-left:0}
+#status.off{display:none;}
+#status{    position: fixed;
+    font-size: 2rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1rem;
+    border: 0.25rem ridge gray;
+    margin: 0 2rem;
+    border-radius: 1rem;}

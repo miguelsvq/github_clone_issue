@@ -41,10 +41,7 @@ const saveOptions = () => {
         document.getElementById('token').setAttribute('placeholder','Token deleted.');
       }
         document.getElementById('token').value="";
-        status.textContent = 'Saved!';
-        setTimeout(() => {
-        status.textContent = '';
-        }, 750);
+        setStatus( 'Saved!');
       }
     );
   }
@@ -60,26 +57,21 @@ const saveOptions = () => {
   chrome.storage.local.set(
     { extOptions: extOptions},
     () => {
-      const status = document.getElementById('status');
-      status.textContent = 'Saved!';
-      setTimeout(() => {
-      status.textContent = '';
-      }, 1500);
+      setStatus( 'Saved!');
     }
   );
 };
 
-const newId = () => {
-  let k=0;
-  const used=Object.keys(extTemplates);
-  while(used.includes('id_'+k)){
-    k++;
-  }
-  return 'id_'+k;
+const setStatus = (str) =>{
+	const status = document.getElementById('status');
+      status.textContent = str;
+      status.classList.remove('off');
+      setTimeout(() => {
+      status.textContent = '';status.classList.add('off');
+      }, 1500);
 }
-
 const templateToForm = (id) => {
-  document.getElementById('id').value = extTemplates[id]['id'];
+  document.getElementById('id').value = id;
   document.getElementById('label').value = extTemplates[id]['label'];
   document.getElementById('title').value = extTemplates[id]['title'] ? extTemplates[id]['title'] : '';
   document.getElementById('body').value = extTemplates[id]['body'] ? extTemplates[id]['body'] : '';
@@ -96,13 +88,16 @@ const populateTemplatesList = () => {
   if(!Object.keys(extTemplates).length){
         //example
         extTemplates={};
-        extTemplates['id_0'];
-        extTemplates['id_0']={};
-        extTemplates['id_0']['label']='Example template';
-        extTemplates['id_0']['title']='Title from example template';
-        extTemplates['id_0']['body']='###Description\n\nGo to options page (from menu extension) to create, edit and delete templates.';
-        extTemplates['id_0']['assignees']=['miguelsvq','mpereram'];
-        extTemplates['id_0']['labels']=['bug','wontfix'];
+        const uuid = crypto.randomUUID();
+        extTemplates[uuid];
+        extTemplates[uuid]={};
+        extTemplates[uuid]['label']='Example template';
+        extTemplates[uuid]['id']=uuid;
+        extTemplates[uuid]['title']='Title of this example template';
+        extTemplates[uuid]['body']='###Description\n\nGo to options page (from menu extension) to create, edit and delete templates.';
+        extTemplates[uuid]['assignees']=['miguelsvq','mpereram'];
+        extTemplates[uuid]['labels']=['bug','wontfix'];
+        storeTemplates('');
     }
   for (const id in extTemplates) {
     const li = document.createElement("li");
@@ -115,20 +110,59 @@ const populateTemplatesList = () => {
   }
 }
 
+const sanitizeTemplates = (templates) => {
+  let sanitized={};
+  for (const id in templates) {
+    if(id.match('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') && id == templates[id]['id'] && templates[id]['label']){
+      sanitized[id]={};
+      sanitized[id]['label']=templates[id]['label'];
+      sanitized[id]['id']=id;
+      if(templates[id]['title'] && typeof templates[id]['title'] === 'string'){
+        sanitized[id]['title']=templates[id]['title'];
+	  }
+	  if(templates[id]['body'] && typeof templates[id]['body'] === 'string'){
+        sanitized[id]['body']=templates[id]['body'];
+	  }
+      if(templates[id]['assignees'] && Array.isArray(templates[id]['assignees'])){
+		let ok=true;
+		for(let k=0;k<templates[id]['assignees'].length;k++){
+		  if(typeof templates[id]['assignees'][k] !== 'string'){
+			  ok=false;
+			  break;
+		  }
+		}
+        if(ok){
+			sanitized[id]['assignees']=templates[id]['assignees'];
+		}
+	  }
+	  if(templates[id]['labels'] && Array.isArray(templates[id]['labels'])){
+		let ok=true;
+		for(let k=0;k<templates[id]['labels'].length;k++){
+		  if(typeof templates[id]['labels'][k] !== 'string'){
+			  ok=false;
+			  break;
+		  }
+		}
+        if(ok){
+			sanitized[id]['labels']=templates[id]['labels'];
+		}
+	  }
+    }
+  }
+  return sanitized;
+}
+
 const storeTemplates = (action) => {
   chrome.storage.local.set(
     { extTemplates: extTemplates},
     () => {
-      const status = document.getElementById('status');
-      status.textContent = action;
-         setTimeout(() => {
-         status.textContent = '';
-      }, 1500);
+      setStatus(action);
       populateTemplatesList()
     }
   );
 }
 const clearForm = () =>{
+	console.log('clearform');
   document.getElementById('delete').classList.remove('visible');
   document.getElementById('id').value = '';
   document.getElementById('label').value = '';
@@ -146,7 +180,7 @@ const storeTemplate = () => {
     return;
   }
   let id = document.getElementById('id').value;
-  if(!id) id=newId();
+  if(!id) id=crypto.randomUUID();
   if(!extTemplates[id]) extTemplates[id]={};
   extTemplates[id]['id']=id;
   extTemplates[id]['label']=document.getElementById('label').value;
@@ -164,8 +198,69 @@ const deleteTemplate = () => {
   delete extTemplates[id];
   storeTemplates('Deleted!')
 }
+const importTemplates = (collection) => {
+  clearForm();
+  collection = sanitizeTemplates(collection);
+  for (const id in collection) {
+    extTemplates[id]=collection[id];
+  }
+  storeTemplates('Imported!');
+  fileChooser();
+}
 
+const importFromUrl = () => {
+  clearForm();
+  const url = document.getElementById('importUrl').value;
+  if(!url){return;}
+  fetch(url, {
+        method: 'GET'
+     })
+    .then(response => response.json())
+    .then(data => {
+        importTemplates(data)
+    });
+}
+const exportTemplates = () => {
+  const data = JSON.stringify(extTemplates,null,2); 
+  const file = new File([data], 'templates.json', {
+    type: 'application/json',
+  })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(file)
+  link.href = url
+  link.download = file.name
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  window.URL.revokeObjectURL(url)
+}
+const fileChooser = () =>{
+  const list = document.getElementById('import');
+  while (list.firstChild) {
+    list.removeChild(list.lastChild);
+  }
+	var fileChooser = document.createElement("input");
+	fileChooser.type = 'file';
+	fileChooser.accept = 'application/json';
+	fileChooser.addEventListener('change', function (evt) {
+	  var f = evt.target.files[0];
+	  if(f) {
+	    var reader = new FileReader();
+	    reader.onload = function(e) {
+	      var str = e.target.result;
+	      collection=JSON.parse(str);
+	      importTemplates(collection);
+	    }
+	    reader.readAsText(f);
+	  }
+	});
+	document.getElementById('import').append(fileChooser);
+}
+
+fileChooser();
 document.getElementById('save').addEventListener('click', saveOptions);
 document.getElementById('store').addEventListener('click', storeTemplate);
-document.getElementById('clear').addEventListener('clear', clearForm);
+document.getElementById('clear').addEventListener('click', clearForm);
 document.getElementById('delete').addEventListener('click', deleteTemplate);
+document.getElementById('export').addEventListener('click', exportTemplates);
+//document.getElementById('importFromUrl').addEventListener('click', importFromUrl);

@@ -6,6 +6,7 @@
 </head>
 <body>
 <h1>Options</h1>
+<div class="off" id="status"></div>
 <details open>
   <summary>Clone buttons</summary>
   <div>
@@ -16,18 +17,21 @@
       <input type="checkbox" id="buttonInIssuePage" name="buttonInIssuePage" /> <label for="buttonInIssuePage">Add clone button in issue page</label> 
     </div>
     <div id="basic">
-	  <div><strong>Clon modifiers:</strong></div>
-	  <fieldset><legend>Title</legend>
+    <div>
+      <div><strong>Clon modifiers:</strong></div>
+      <div><label for="assignTo">Assign to: </label><input required type="text" name="assignTo" id="assignTo" /><br/><small>Comma delimited list. Leave empty to clone assignees.</small>
+      </div>
+      <fieldset><legend>Title</legend>
       <div><label for="titlePrefix">Prefix: </label><input type="text" name="titlePrefix" id="titlePrefix"></div>
       <div><label for="titleSuffix">Suffix: </label><input type="text" name="titleSuffix" id="titleSuffix"></div>
-	  </fieldset>
+      </fieldset>
       <fieldset><legend>Description</legend>
-	  <div><label for="descriptionPrefix">Prefix: </label><textarea rows="4" name="descriptionPrefix" id="descriptionPrefix"></textarea></div>
+      <div><label for="descriptionPrefix">Prefix: </label><textarea rows="4" name="descriptionPrefix" id="descriptionPrefix"></textarea></div>
       <div><label for="descriptionSuffix">Suffix: </label><textarea rows="4" name="descriptionSuffix" id="descriptionSuffix"></textarea></div>
-	  </fieldset>
-	  <small>Available tokens:<br/>
-	  <code>{#}</code> original issue number.<br/>
-	  <code>{L}</code> Link to original issue.<br/>
+      </fieldset>
+      <small>Available tokens:<br/>
+      <code>{#}</code> original issue number.<br/>
+      <code>{L}</code> Link to original issue.<br/>
       <code>{T}</code> Original issue title.<br/>
       </small>
     </div>
@@ -60,7 +64,12 @@
       <strong>Currently defined templates:</strong><br/>
       <ul id="templatesList">
       </ul>
-	  <small id="new">Click on the template label to edit or delete.</small>
+      <small id="new">Click on the template label to edit or delete.</small></br>
+      
+	  <div><button id="export">Export templates collection as json file</button></div>
+	  <!-- div>Import from url: <input type="text" id="importUrl" name="importUrl"><button id="importFromUrl">Import</button></div -->
+	  <div>Add templates from json file: <span id="import"></span></div>
+
     </div>
   <div class="wrapper">
     <div id="templateForm">
@@ -72,14 +81,15 @@
       <div><label for="assignees">Assignees: </label><input type="text" name="assignees" id="assignees"></br><small>Comma delimited list.</small></div>
       <div><label for="labels">Labels: </label><input type="text" name="labels" id="labels"></br><small>Comma delimited list.</small></div>
       <button id="store">Store template</button>
-	  <button id="clear">Clear form</button>
-	  <button id="delete">Delete template</button>
+      <button id="clear">Clear form</button>
+      <button id="delete">Delete template</button>
     </div>
     <div class="tokens">
-    </div>
+    
+	</div>
   </div>
 </details>
-<div id="status"></div><br/>
+<br/>
 <button id="save">Save</button>
 <script src="options.js"></script>
 </body>
