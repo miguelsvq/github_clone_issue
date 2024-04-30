@@ -7,6 +7,9 @@ chrome.storage.local.get('gitToken', function(items) {
   });
 chrome.storage.local.get('extOptions', function(items) {
     if(items.extOptions){
+      if(items.extOptions.assignTo){
+        document.getElementById('assignTo').value=items.extOptions.assignTo.join(', ');
+      }else{document.getElementById('assignTo').value='';}
       document.getElementById('titlePrefix').value=items.extOptions.titlePrefix;
       document.getElementById('titleSuffix').value=items.extOptions.titleSuffix;
       document.getElementById('descriptionPrefix').value=items.extOptions.descriptionPrefix;
@@ -46,6 +49,9 @@ const saveOptions = () => {
     );
   }
   var extOptions={};
+  if(document.getElementById('assignTo').value){
+  extOptions.assignTo=document.getElementById('assignTo').value.split(",").map(function(item) {return item.trim();});
+  }else{extOptions.assignTo=false;}
   extOptions.titlePrefix=document.getElementById('titlePrefix').value;
   extOptions.titleSuffix=document.getElementById('titleSuffix').value;
   extOptions.descriptionPrefix=document.getElementById('descriptionPrefix').value;
