@@ -85,7 +85,49 @@
       <button id="delete">Delete template</button>
     </div>
     <div class="tokens">
-    
+    <!-- time tokens-->
+    <!--
+	locale ES-es:
+	actual o siguente:
+	  C current
+	  N next
+	unidad W semana
+	  variante S M, si no se indica se coge por defecto de locale
+	  variante subdate B o E begin or end
+	unidad M mes
+	  variante subdate B o E begin or end
+	  array con : locale, formato y "fecha": 
+
+	  W+1,1 (W semana, +1 semana que viene COMA dia de la semana siendo 1 lunes)
+	  M+1,1 (M mes, +1 Mes que viene COMA dia del mes, si es - cuanta desde el final, -1 es el utimo dia del mes)
+	  Si se quiere una hora especifica se indica como: COMA 00:00:00
+[
+	{
+      dateStyle: 'full',
+      timeStyle: 'long',
+      timeZone: 'Australia/Sydney',
+    }]  full, long, medium, short
+{
+  weekday: 'narrow' | 'short' | 'long',
+  era: 'narrow' | 'short' | 'long',
+  year: 'numeric' | '2-digit',
+  month: 'numeric' | '2-digit' | 'narrow' | 'short' | 'long',
+  day: 'numeric' | '2-digit',
+  hour: 'numeric' | '2-digit',
+  minute: 'numeric' | '2-digit',
+  second: 'numeric' | '2-digit',
+  timeZoneName: 'short' | 'long',
+
+  // Time zone to express it in
+  timeZone: 'Asia/Shanghai',
+  // Force 12-hour or 24-hour
+  hour12: true | false,
+
+  // Rarely-used options
+  hourCycle: 'h11' | 'h12' | 'h23' | 'h24',
+  formatMatcher: 'basic' | 'best fit'
+
+	-->
 	</div>
   </div>
 </details>

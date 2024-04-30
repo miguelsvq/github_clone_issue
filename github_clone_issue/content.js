@@ -273,6 +273,9 @@ const cloneIssue = (issueLink,repo) => {
             labels: (issueData.labels && issueData.labels.map(label => label.name)) || [],
             assignees: (issueData.assignees && issueData.assignees.map(assignee => assignee.login)) || [],
         };
+        if(extOptions.assignTo && Array.isArray(extOptions.assignTo)){
+          clonedIssue.assignees = extOptions.assignTo;
+        }
         if(sameRepo(issueLink,repo) && issueData.milestone && issueData.milestone.number){
             clonedIssue['milestone'] = issueData.milestone.number;
         }
